@@ -1,102 +1,153 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8">
-  <title>Resultados en Vivo</title>
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
-    import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-database.js";
+<meta charset="UTF-8">
+<title>Resultados en Vivo</title>
 
-    const firebaseConfig = {
-      apiKey: "TU_API_KEY",
-      authDomain: "votaciones-personero-74663.firebaseapp.com",
-      databaseURL: "https://votaciones-personero-74663-default-rtdb.firebaseio.com/",
-      projectId: "votaciones-personero-74663",
-      storageBucket: "votaciones-personero-74663.firebasestorage.app",
-      messagingSenderId: "713692900786",
-      appId: "1:713692900786:web:81b1e52085f53d984908ab"
-    };
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
+import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-database.js";
 
-    const votosRef = ref(db, "votos");
+const firebaseConfig = {
+  apiKey: "TU_API_KEY",
+  authDomain: "votaciones-personero-74663.firebaseapp.com",
+  databaseURL: "https://votaciones-personero-74663-default-rtdb.firebaseio.com/",
+  projectId: "votaciones-personero-74663",
+  storageBucket: "votaciones-personero-74663.firebasestorage.app",
+  messagingSenderId: "713692900786",
+  appId: "1:713692900786:web:81b1e52085f53d984908ab"
+};
 
-    onValue(votosRef, (snapshot) => {
-      const data = snapshot.val() || {};
-      const c1 = data.candidato1 || 0;
-      const c2 = data.candidato2 || 0;
-      const blanco = data.blanco || 0;
-      const total = c1 + c2 + blanco;
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
 
-      document.getElementById("c1").innerHTML = c1;
-      document.getElementById("c2").innerHTML = c2;
-      document.getElementById("blanco").innerHTML = blanco;
+let chart;
 
-      if (total > 0) {
-        document.getElementById("p1").innerHTML = ((c1/total)*100).toFixed(1) + "%";
-        document.getElementById("p2").innerHTML = ((c2/total)*100).toFixed(1) + "%";
-        document.getElementById("pblanco").innerHTML = ((blanco/total)*100).toFixed(1) + "%";
+const votosRef = ref(db, "votos");
+
+onValue(votosRef, (snapshot) => {
+  const data = snapshot.val() || {};
+  const c1 = data.candidato1 || 0;
+  const c2 = data.candidato2 || 0;
+  const blanco = data.blanco || 0;
+  const total = c1 + c2 + blanco;
+
+  document.getElementById("total").innerText = total;
+
+  let p1 = total ? ((c1/total)*100).toFixed(1) : 0;
+  let p2 = total ? ((c2/total)*100).toFixed(1) : 0;
+  let pb = total ? ((blanco/total)*100).toFixed(1) : 0;
+
+  document.getElementById("tabla").innerHTML = `
+    <tr><td>Candidato 1</td><td>${c1}</td><td>${p1}%</td></tr>
+    <tr><td>Candidato 2</td><td>${c2}</td><td>${p2}%</td></tr>
+    <tr><td>Voto en Blanco</td><td>${blanco}</td><td>${pb}%</td></tr>
+  `;
+
+  if(chart){
+    chart.data.datasets[0].data = [c1,c2,blanco];
+    chart.update();
+  } else {
+    const ctx = document.getElementById("grafico");
+    chart = new Chart(ctx, {
+      type: "bar",
+      data: {
+        labels: ["Candidato 1", "Candidato 2", "Blanco"],
+        datasets: [{
+          label: "Votos",
+          data: [c1,c2,blanco],
+          backgroundColor: ["#0B5E20","#15803D","#D4AF37"]
+        }]
       }
     });
+  }
+});
 
-    window.finalizar = function() {
-      alert("Elección finalizada");
-    }
+window.reiniciar = function(){
+  set(ref(db,"votos"), null);
+  alert("Votación reiniciada");
+}
+</script>
 
-    window.reiniciar = function() {
-      set(ref(db, "votos"), null);
-      alert("Votación reiniciada");
-    }
-  </script>
+<style>
+body{
+  font-family:Arial;
+  background:white;
+  text-align:center;
+  margin:0;
+}
 
-  <style>
-    body {
-      font-family: Arial;
-      text-align: center;
-      background-color: #f4f4f4;
-    }
-    h1 { color: #003366; }
-    .box {
-      background: white;
-      margin: 20px auto;
-      padding: 20px;
-      width: 300px;
-      border-radius: 10px;
-      box-shadow: 0px 0px 10px gray;
-    }
-    button {
-      padding: 10px 20px;
-      margin: 10px;
-      cursor: pointer;
-    }
-  </style>
+.header{
+  background:#0B5E20;
+  color:white;
+  padding:25px;
+}
+
+h1{
+  margin:0;
+}
+
+.container{
+  width:80%;
+  margin:auto;
+  margin-top:40px;
+}
+
+table{
+  width:100%;
+  border-collapse:collapse;
+  margin-top:30px;
+}
+
+th,td{
+  border:1px solid #ccc;
+  padding:10px;
+}
+
+th{
+  background:#0B5E20;
+  color:white;
+}
+
+button{
+  background:#D4AF37;
+  padding:10px 20px;
+  border:none;
+  margin-top:20px;
+  cursor:pointer;
+}
+</style>
 </head>
 
 <body>
 
-  <h1>Resultados en Vivo</h1>
+<div class="header">
+<h1>Resultados Oficiales en Tiempo Real</h1>
+<p>Escuela Normal Superior Santa María de La Paz</p>
+</div>
 
-  <div class="box">
-    <h2>Candidato 1</h2>
-    <p>Votos: <span id="c1">0</span></p>
-    <p>Porcentaje: <span id="p1">0%</span></p>
-  </div>
+<div class="container">
 
-  <div class="box">
-    <h2>Candidato 2</h2>
-    <p>Votos: <span id="c2">0</span></p>
-    <p>Porcentaje: <span id="p2">0%</span></p>
-  </div>
+<h2>Total de votos: <span id="total">0</span></h2>
 
-  <div class="box">
-    <h2>Voto en Blanco</h2>
-    <p>Votos: <span id="blanco">0</span></p>
-    <p>Porcentaje: <span id="pblanco">0%</span></p>
-  </div>
+<canvas id="grafico"></canvas>
 
-  <button onclick="finalizar()">Finalizar</button>
-  <button onclick="reiniciar()">Reiniciar</button>
+<table>
+<thead>
+<tr>
+<th>Candidato</th>
+<th>Votos</th>
+<th>Porcentaje</th>
+</tr>
+</thead>
+<tbody id="tabla"></tbody>
+</table>
+
+<button onclick="reiniciar()">Reiniciar Votación</button>
+
+</div>
 
 </body>
 </html>
