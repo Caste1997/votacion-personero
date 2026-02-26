@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Votación Personero - Escuela Normal Superior Santa María</title>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
+    import { getDatabase, ref, runTransaction } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "TU_API_KEY",
+      authDomain: "votaciones-personero-74663.firebaseapp.com",
+      databaseURL: "https://votaciones-personero-74663-default-rtdb.firebaseio.com/",
+      projectId: "votaciones-personero-74663",
+      storageBucket: "votaciones-personero-74663.firebasestorage.app",
+      messagingSenderId: "713692900786",
+      appId: "1:713692900786:web:81b1e52085f53d984908ab"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    window.votar = function(candidato) {
+      const votoRef = ref(db, "votos/" + candidato);
+      runTransaction(votoRef, (current) => {
+        return (current || 0) + 1;
+      });
+      document.getElementById("mensaje").innerHTML = "Gracias por tu voto";
+    }
+  </script>
+
+  <style>
+    body {
+      font-family: Arial;
+      text-align: center;
+      background-color: #003366;
+      color: white;
+    }
+    .candidato {
+      display: inline-block;
+      margin: 20px;
+    }
+    img {
+      width: 200px;
+      height: 200px;
+      border-radius: 10px;
+    }
+    button {
+      padding: 10px 20px;
+      margin-top: 10px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+
+<body>
+
+  <h1>Elección Personero 2026</h1>
+  <h2>Escuela Normal Superior Santa María</h2>
+
+  <div class="candidato">
+    <img src="candidato1.jpg" alt="Candidato 1">
+    <h3>Candidato 1</h3>
+    <button onclick="votar('candidato1')">Votar</button>
+  </div>
+
+  <div class="candidato">
+    <img src="candidato2.jpg" alt="Candidato 2">
+    <h3>Candidato 2</h3>
+    <button onclick="votar('candidato2')">Votar</button>
+  </div>
+
+  <div class="candidato">
+    <h3>Voto en Blanco</h3>
+    <button onclick="votar('blanco')">Votar en Blanco</button>
+  </div>
+
+  <h2 id="mensaje"></h2>
+
+</body>
+</html>
